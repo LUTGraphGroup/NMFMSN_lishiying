@@ -1,6 +1,6 @@
 k = 3
 r = 60
-kf=5
+kf = 5
 alpha = 0.001
 beta = 0.5
 gamma = 0.001
