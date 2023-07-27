@@ -15,10 +15,7 @@ import math
 #导入超参
 from hyperparams import *
 
-
 start_time = time.time()
-#交叉验证次数
-kf=5
 
 
 
@@ -35,15 +32,15 @@ def convert_to_lists(labels, scores):
 
 
 if __name__ == '__main__':
-    circrna_disease_matrix = np.load('G:\\疾病与RNA\\数据预处理\\数据清洗\\associationMatrix.npy')
-    circ_sim_matrix = np.load('G:\\疾病与RNA\\数据预处理\\合并相似性矩阵\\Rmatrix.npy')
-    dis_sim_matrix = np.load('G:\\疾病与RNA\\数据预处理\\合并相似性矩阵\\Dmatrix.npy')
+    circrna_disease_matrix = np.load('associationMatrix.npy')
+    circ_sim_matrix = np.load('SC.npy')
+    dis_sim_matrix = np.load('SD.npy')
 
-    # 划分训练集为五份为后面五折实验做准备
-    index_tuple = (np.where(circrna_disease_matrix == 1))  # 找到关联矩阵中1元素的索引  形式为两个等长一维矩阵[,,,,],[,,,,]2
-    one_list = list(zip(index_tuple[0], index_tuple[1]))  # 将索引保存为列表 [(,),(,)()...]
+    # 划分训练集
+    index_tuple = (np.where(circrna_disease_matrix == 1))
+    one_list = list(zip(index_tuple[0], index_tuple[1]))
     random.shuffle(one_list)  # 打乱
-    split = math.ceil(len(one_list) / kf)  # split为划分五折，每个子集的大小
+    split = math.ceil(len(one_list) / kf)
 
     # 定义一些列表用于保存评估值
     acc = []
@@ -55,25 +52,19 @@ if __name__ == '__main__':
     aucs = []
     mean_fpr = np.linspace(0, 1, 1000)
 
-    # 下面用于保存交叉验证的每次的预测矩阵和ROC矩阵
-    # 指定保存的文件夹路径
-    save_dir = 'G:\\疾病与RNA\\图正则化\\实验记录\\五折交叉验证'
-    # 检查文件夹是否存在，如果不存在则创建它
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
 
     # 5-fold start
     fold = 1
-    for i in range(0, len(one_list), split):  # (m,n,l) i的值在m,n之间循环 步长为l
+    for i in range(0, len(one_list), split): 
         print('第{}次交叉验证开始'.format(fold))
-        test_index = one_list[i:i + split]  # 将列表切割，划分为（n-m）/l个长为l的子集
-        new_circrna_disease_matrix = circrna_disease_matrix.copy()  # 复制关联矩阵，一会要抹除1为0
+        test_index = one_list[i:i + split]
+        new_circrna_disease_matrix = circrna_disease_matrix.copy()
 
         # 抹除已知关系
         for index in test_index:
             new_circrna_disease_matrix[index[0], index[1]] = 0
 
-        # 一会评估用的roc矩阵，这里是把训练集的标签改为2，一会不计入TP,TN等的计算
+        # 把训练集的标签改为2
         roc_circrna_disease_matrix = new_circrna_disease_matrix + circrna_disease_matrix
         rel_matrix = new_circrna_disease_matrix
 
@@ -81,7 +72,7 @@ if __name__ == '__main__':
         re_m = Re_Matix()
         re_circrna_disease_matrix = re_m.process_matrix(new_circrna_disease_matrix, circ_sim_matrix, dis_sim_matrix, k)
 
-        # NMF开始
+        # NMF
         mf = MatrixFactorization()
         C, D = mf.nonnegative_matrix_factorization(re_circrna_disease_matrix, circ_sim_matrix, dis_sim_matrix, r
                                                    , lambda1, lambda2, alpha, beta, lr, max_iter, tol,diff_threshold,gamma)
