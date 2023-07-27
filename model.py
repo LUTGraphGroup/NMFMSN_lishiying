@@ -1,9 +1,11 @@
 import numpy as np
 
+
 class MatrixFactorization:
     def __init__(self):
         pass
-    def pearson_similarity(self,x, y):
+
+    def pearson_similarity(self, x, y):
         n = len(x)
         mean_x = sum(x) / n
         mean_y = sum(y) / n
@@ -13,29 +15,30 @@ class MatrixFactorization:
             return 0.99998
         else:
             return numerator / denominator
+
     def svd_init(self, A, k):
         U, S, V = np.linalg.svd(A)
         C = np.dot(U[:, :k], np.sqrt(np.diag(S[:k])))
         D = np.dot(V.T[:, :k], np.sqrt(np.diag(S[:k])))
         return C, D
 
-    def random_init(self,m, n, k):
+    def random_init(self, m, n, k):
         # 随机生成非负的C和D矩阵作为初始值
         C = np.random.uniform(low=1, high=2, size=(m, k))
         D = np.random.uniform(low=1, high=2, size=(n, k))
         return C, D
 
     # 计算S的拉普拉斯矩阵L
-    def laplacian(self,S):
+    def laplacian(self, S):
         D = np.diag(np.sum(S, axis=1))
         L = D - S
         return L
 
-    def loss_func(self,A, C, D, SC, SD, alpha, beta, gamma, GS, GD):
+    def loss_func(self, A, C, D, SC, SD, alpha, beta, gamma, GS, GD):
         p, q = A.shape
 
-        loss = np.sum((A - np.dot(C, D.T)) ** 2) + alpha * np.sum(np.square(C)) + alpha * np.sum(np.square(D))\
-             +gamma * (np.trace(np.dot(np.dot(C.T, GS), C)) + np.trace(np.dot(np.dot(D.T, GD), D)))
+        loss = np.sum((A - np.dot(C, D.T)) ** 2) + alpha * np.sum(np.square(C)) + alpha * np.sum(np.square(D)) \
+               + gamma * (np.trace(np.dot(np.dot(C.T, GS), C)) + np.trace(np.dot(np.dot(D.T, GD), D)))
         for i in range(p):
             for j in range(i + 1, p):
                 corr = self.pearson_similarity(C[i], C[j])
@@ -46,15 +49,14 @@ class MatrixFactorization:
                 loss += beta * ((SD[i, j] - corr) ** 2)
         return loss / 2
 
-    def grad_C(self,A, C, D, SC, alpha, beta, gamma, i, GS):
+    def grad_C(self, A, C, D, SC, alpha, beta, gamma, i, GS):
         p, q = A.shape
         len = C.shape[1]
         grad = np.zeros(len)
 
         for ii in range(C.shape[0]):
-            grad+=0.5*gamma*C[ii,:]*GS[i,ii]
-        grad+=0.5*gamma*C[i,:]*GS[i,i]
-
+            grad += 0.5 * gamma * C[ii, :] * GS[i, ii]
+        grad += 0.5 * gamma * C[i, :] * GS[i, i]
 
         for j in range(q):
             grad += (np.dot(C[i], D[j]) - A[i, j]) * D[j]
@@ -63,19 +65,20 @@ class MatrixFactorization:
             corr = self.pearson_similarity(C[i], C[k])
             if np.isnan(corr):
                 corr = 0
-                grad += beta * (SC[i, k] - corr) * (((C[k] - np.mean(C[k]))/(np.linalg.norm(C[i] - np.mean(C[i]))*np.linalg.norm(C[k] - np.mean(C[k]))))-(((np.dot((C[i] - np.mean(C[i])), (C[k] - np.mean(C[k]))))/((np.linalg.norm(C[i] - np.mean(C[i])) ** 3)*np.linalg.norm(C[k] - np.mean(C[k]))))*(C[i] - np.mean(C[i]))))
+                grad += beta * (SC[i, k] - corr) * (((C[k] - np.mean(C[k])) / (
+                            np.linalg.norm(C[i] - np.mean(C[i])) * np.linalg.norm(C[k] - np.mean(C[k])))) - (((np.dot(
+                    (C[i] - np.mean(C[i])), (C[k] - np.mean(C[k])))) / ((np.linalg.norm(
+                    C[i] - np.mean(C[i])) ** 3) * np.linalg.norm(C[k] - np.mean(C[k])))) * (C[i] - np.mean(C[i]))))
         return grad
 
-    def grad_D(self,A, C, D, SD, alpha, beta, gamma, j, GD):
+    def grad_D(self, A, C, D, SD, alpha, beta, gamma, j, GD):
         p, q = A.shape
         len = D.shape[1]
         grad = np.zeros(len)
 
-
         for ii in range(D.shape[0]):
-            grad+=0.5*gamma*D[ii,:]*GD[j,ii]
-        grad+=0.5*gamma*D[j,:]*GD[j,j]
-
+            grad += 0.5 * gamma * D[ii, :] * GD[j, ii]
+        grad += 0.5 * gamma * D[j, :] * GD[j, j]
 
         for i in range(p):
             grad += (np.dot(C[i], D[j]) - A[i, j]) * C[i]
@@ -84,18 +87,20 @@ class MatrixFactorization:
             corr = self.pearson_similarity(D[j], D[k])
             if np.isnan(corr):
                 corr = 0
-                grad += beta * (SD[j, k] - corr) * (((D[k] - np.mean(D[k]))/(np.linalg.norm(D[j] - np.mean(D[j]))*np.linalg.norm(D[k] - np.mean(D[k]))))-(((np.dot((D[j] - np.mean(D[j])), (D[k] - np.mean(D[k]))))/((np.linalg.norm(D[j] - np.mean(D[j])) ** 3)*np.linalg.norm(D[k] - np.mean(D[k]))))*(D[j] - np.mean(D[j]))))
+                grad += beta * (SD[j, k] - corr) * (((D[k] - np.mean(D[k])) / (
+                            np.linalg.norm(D[j] - np.mean(D[j])) * np.linalg.norm(D[k] - np.mean(D[k])))) - (((np.dot(
+                    (D[j] - np.mean(D[j])), (D[k] - np.mean(D[k])))) / ((np.linalg.norm(
+                    D[j] - np.mean(D[j])) ** 3) * np.linalg.norm(D[k] - np.mean(D[k])))) * (D[j] - np.mean(D[j]))))
         return grad
 
-    def nonnegative_matrix_factorization(self,A, SC, SD, r, alpha, beta,,gamma, lr, max_iter, tol,diff_threshold):
+    def nonnegative_matrix_factorization(self, A, SC, SD, r, alpha, beta, gamma, lr, max_iter, tol, diff_threshold):
         p, q = A.shape
         # C, D = self.random_init(p, q, r)
         C, D = self.svd_init(A, r)
         print(C.shape, D.shape)
 
-
-        GS=self.laplacian(SC)
-        GD=self.laplacian(SD)
+        GS = self.laplacian(SC)
+        GD = self.laplacian(SD)
 
         loss_list = []
         for iter in range(max_iter):
@@ -117,15 +122,19 @@ class MatrixFactorization:
                 D[j] = np.maximum(D[j] - lr * grad, 0)
 
         return C, D
+
+
 class Re_Matix:
     def __init__(self):
         pass
+
     def find_k_largest_elements(self, matrix, i, k):
         row_without_i = np.delete(matrix[i, :], i)
         largest_indices = np.argsort(row_without_i)[-k:]
         largest_elements = row_without_i[largest_indices]
         largest_indices = largest_indices + (largest_indices >= i)
         return largest_elements, largest_indices
+
     def process_matrix(self, new_circrna_disease_matrix, circ_sim_matrix, dis_sim_matrix, k):
         if k != 0:
             # 重构邻接矩阵
