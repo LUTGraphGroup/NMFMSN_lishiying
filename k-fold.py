@@ -1,4 +1,4 @@
-from model import MatrixFactorization,Re_Matix
+from model import MatrixFactorization, Re_Matix
 # 记录文件，时间等
 import os
 import time
@@ -12,12 +12,10 @@ from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_sc
 # 交叉验证
 import random
 import math
-#导入超参
+# 导入超参
 from hyperparams import *
 
 start_time = time.time()
-
-
 
 
 def convert_to_lists(labels, scores):
@@ -52,10 +50,9 @@ if __name__ == '__main__':
     aucs = []
     mean_fpr = np.linspace(0, 1, 1000)
 
-
     # 5-fold start
     fold = 1
-    for i in range(0, len(one_list), split): 
+    for i in range(0, len(one_list), split):
         print('第{}次交叉验证开始'.format(fold))
         test_index = one_list[i:i + split]
         new_circrna_disease_matrix = circrna_disease_matrix.copy()
@@ -75,7 +72,7 @@ if __name__ == '__main__':
         # NMF
         mf = MatrixFactorization()
         C, D = mf.nonnegative_matrix_factorization(re_circrna_disease_matrix, circ_sim_matrix, dis_sim_matrix, r
-                                                   , alpha, beta,,gamma, lr, max_iter, tol,diff_threshold)
+                                                   , alpha, beta, gamma, lr, max_iter, tol, diff_threshold)
 
         prediction_matrix = np.dot(C, D.T)
         # 求fpr，tpr以绘制ROC曲线
@@ -102,7 +99,6 @@ if __name__ == '__main__':
         pre, rec, prthresholds = precision_recall_curve(y_true, y_scores)
         aupr.append(auc(rec, pre))
 
-
         plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d(area=%0.4f)' % (fold, roc_auc))
 
         fold += 1
@@ -116,7 +112,6 @@ if __name__ == '__main__':
     avg_precision = sum(precision) / len(precision)
     avg_f1 = sum(f1) / len(f1)
     avg_aupr = sum(aupr) / len(aupr)
-
 
     fpr_tpr = np.vstack((mean_fpr, mean_tpr))
 
