@@ -117,3 +117,50 @@ class MatrixFactorization:
                 D[j] = np.maximum(D[j] - lr * grad, 0)
 
         return C, D
+class Re_Matix:
+    def __init__(self):
+        pass
+    def find_k_largest_elements(self, matrix, i, k):
+        row_without_i = np.delete(matrix[i, :], i)
+        largest_indices = np.argsort(row_without_i)[-k:]
+        largest_elements = row_without_i[largest_indices]
+        largest_indices = largest_indices + (largest_indices >= i)
+        return largest_elements, largest_indices
+    def process_matrix(self, new_circrna_disease_matrix, circ_sim_matrix, dis_sim_matrix, k):
+        if k != 0:
+            # 重构邻接矩阵
+            # 水平重构
+            A_R = np.zeros_like(new_circrna_disease_matrix)
+            for i in range(new_circrna_disease_matrix.shape[0]):
+                values_r, indices_r = self.find_k_largest_elements(circ_sim_matrix, i, k)
+                sum_R = 0
+                sum_v_r = 0
+                for j in range(k):
+                    # 最大的元素与他们对应的行向量乘积的和
+                    sum_R = sum_R + values_r[j] * new_circrna_disease_matrix[indices_r[j], :]
+                for v in range(k):
+                    sum_v_r += values_r[v]
+                A_R[i, :] = sum_R / sum_v_r
+            # 垂直重构
+            A_D = np.zeros_like(new_circrna_disease_matrix)
+            for i in range(new_circrna_disease_matrix.shape[1]):
+                values_d, indices_d = self.find_k_largest_elements(dis_sim_matrix, i, k)
+                sum_D = 0
+                sum_v_d = 0
+                for j in range(k):
+                    # 最大的元素与他们对应的列向量乘积的和
+                    sum_D = sum_D + values_d[j] * new_circrna_disease_matrix[:, indices_d[j]]
+                for v in range(k):
+                    sum_v_d += values_d[v]
+                A_D[:, i] = sum_D / sum_v_d
+
+            A_RD = (A_D + A_R) / 2
+
+            re_circrna_disease_matrix = np.zeros_like(new_circrna_disease_matrix)
+            for i in range(new_circrna_disease_matrix.shape[0]):
+                for j in range(new_circrna_disease_matrix.shape[1]):
+                    re_circrna_disease_matrix[i, j] = max(A_RD[i][j], new_circrna_disease_matrix[i][j])
+        else:
+            re_circrna_disease_matrix = new_circrna_disease_matrix
+
+        return re_circrna_disease_matrix
