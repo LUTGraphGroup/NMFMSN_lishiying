@@ -78,10 +78,6 @@ if __name__ == '__main__':
                                                    , lambda1, lambda2, alpha, beta, lr, max_iter, tol,diff_threshold,gamma)
 
         prediction_matrix = np.dot(C, D.T)
-        # 保存prediction_matrix矩阵和roc_circrna_disease_matrix矩阵到文件夹中，使用数字作为文件名
-        np.save(os.path.join(save_dir, f'prediction_matrix_{fold}.npy'), prediction_matrix)
-        np.save(os.path.join(save_dir, f'roc_circrna_disease_matrix_{fold}.npy'), roc_circrna_disease_matrix)
-
         # 求fpr，tpr以绘制ROC曲线
         y_true, y_scores = convert_to_lists(roc_circrna_disease_matrix, prediction_matrix)
         print('交叉验证的样本数量：', len(y_true), len(y_scores))
@@ -106,7 +102,7 @@ if __name__ == '__main__':
         pre, rec, prthresholds = precision_recall_curve(y_true, y_scores)
         aupr.append(auc(rec, pre))
 
-        # 画图，只需要plt.plot(fpr,tpr),变量roc_auc只是记录auc的值，通过auc()函数计算出来
+
         plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d(area=%0.4f)' % (fold, roc_auc))
 
         fold += 1
@@ -123,17 +119,6 @@ if __name__ == '__main__':
 
     # 保存实验记录
     fpr_tpr = np.vstack((mean_fpr, mean_tpr))
-    with open('G:\\疾病与RNA\\图正则化\\实验记录\\五折交叉验证\\fpr_tpr.txt', 'w',encoding='utf-8') as file:
-        np.savetxt(file, fpr_tpr, fmt="%.4f", delimiter=",")
-
-    with open("G:\\疾病与RNA\\图正则化\\实验记录\\五折交叉验证\\评估指标记录.txt", "w",encoding='utf-8') as file:
-        file.write("Auc：{:.4f}\n".format(mean_auc))
-        file.write("Accuracy：{:.4f}\n".format(avg_acc))
-        file.write("Recall：{:.4f}\n".format(avg_recall))
-        file.write("Precision：{:.4f}\n".format(avg_precision))
-        file.write("F1：{:.4f}\n".format(avg_f1))
-        file.write("AUPR：{:.4f}\n".format(avg_aupr))
-        file.write("\n")
 
     # 打印指标
     print("Auc 平均值为：{:.4f}".format(mean_auc))
