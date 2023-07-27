@@ -75,7 +75,7 @@ if __name__ == '__main__':
         # NMF
         mf = MatrixFactorization()
         C, D = mf.nonnegative_matrix_factorization(re_circrna_disease_matrix, circ_sim_matrix, dis_sim_matrix, r
-                                                   , lambda1, lambda2, alpha, beta, lr, max_iter, tol,diff_threshold,gamma)
+                                                   , alpha, beta,,gamma, lr, max_iter, tol,diff_threshold)
 
         prediction_matrix = np.dot(C, D.T)
         # 求fpr，tpr以绘制ROC曲线
