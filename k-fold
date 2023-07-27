@@ -117,7 +117,7 @@ if __name__ == '__main__':
     avg_f1 = sum(f1) / len(f1)
     avg_aupr = sum(aupr) / len(aupr)
 
-    # 保存实验记录
+
     fpr_tpr = np.vstack((mean_fpr, mean_tpr))
 
     # 打印指标
