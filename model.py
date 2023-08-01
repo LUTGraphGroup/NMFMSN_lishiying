@@ -55,8 +55,7 @@ class MatrixFactorization:
         grad = np.zeros(len)
 
         for ii in range(C.shape[0]):
-            grad += 0.5 * gamma * C[ii, :] * GS[i, ii]
-        grad += 0.5 * gamma * C[i, :] * GS[i, i]
+            grad+=gamma*(C[i,:]-C[ii,:])
 
         for j in range(q):
             grad += (np.dot(C[i], D[j]) - A[i, j]) * D[j]
@@ -77,8 +76,7 @@ class MatrixFactorization:
         grad = np.zeros(len)
 
         for ii in range(D.shape[0]):
-            grad += 0.5 * gamma * D[ii, :] * GD[j, ii]
-        grad += 0.5 * gamma * D[j, :] * GD[j, j]
+            grad+=gamma*(D[j,:]-D[ii,:])
 
         for i in range(p):
             grad += (np.dot(C[i], D[j]) - A[i, j]) * C[i]
@@ -106,7 +104,6 @@ class MatrixFactorization:
         for iter in range(max_iter):
             loss = self.loss_func(A, C, D, SC, SD, alpha, beta, gamma, GS, GD)
             if iter % 10 == 0:
-                print("Iteration: {} Loss: {}".format(iter, loss))
                 loss_list.append(loss)
                 if len(loss_list) >= 3:
                     diff = abs(loss_list[-3] - loss_list[-2]) + abs(loss_list[-2] - loss_list[-1])
