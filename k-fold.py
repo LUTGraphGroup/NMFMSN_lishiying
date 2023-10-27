@@ -3,11 +3,10 @@ from model import MatrixFactorization, Re_Matix
 import os
 import time
 
-# sk库 绘制ROC曲线，以及计算其他的指标
-from sklearn.metrics import roc_curve, auc, precision_recall_curve
+# sk库 绘制ROC曲
+from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import accuracy_score, recall_score, precision_score, f1_score
 
 # 交叉验证
 import random
@@ -41,11 +40,6 @@ if __name__ == '__main__':
     split = math.ceil(len(one_list) / kf)
 
     # 定义一些列表用于保存评估值
-    acc = []
-    recall = []
-    precision = []
-    f1 = []
-    aupr = []
     tprs = []
     aucs = []
     mean_fpr = np.linspace(0, 1, 1000)
@@ -86,20 +80,7 @@ if __name__ == '__main__':
         # 计算auc
         roc_auc = auc(fpr, tpr)
         print('AUC：{}'.format(roc_auc))
-        aucs.append(roc_auc)
-
-        # 其他指标
-        y_pred = [1 if score >= 0.5 else 0 for score in y_scores]
-        acc.append(accuracy_score(y_true, y_pred))
-        recall.append(recall_score(y_true, y_pred))
-        precision.append(precision_score(y_true, y_pred))
-        f1.append(f1_score(y_true, y_pred))
-
-        # pr曲线
-        pre, rec, prthresholds = precision_recall_curve(y_true, y_scores)
-        aupr.append(auc(rec, pre))
-
-        plt.plot(fpr, tpr, lw=1, alpha=0.3, label='ROC fold %d(area=%0.4f)' % (fold, roc_auc))
+        aucs.append(roc_auc
 
         fold += 1
 
@@ -107,21 +88,11 @@ if __name__ == '__main__':
     mean_tpr[-1] = 1.0
     # 计算平均值
     mean_auc = auc(mean_fpr, mean_tpr)  # 计算平均AUC值
-    avg_acc = sum(acc) / len(acc)
-    avg_recall = sum(recall) / len(recall)
-    avg_precision = sum(precision) / len(precision)
-    avg_f1 = sum(f1) / len(f1)
-    avg_aupr = sum(aupr) / len(aupr)
 
     fpr_tpr = np.vstack((mean_fpr, mean_tpr))
 
     # 打印指标
     print("Auc 平均值为：{:.4f}".format(mean_auc))
-    print("Accuracy 平均值为：{:.4f}".format(avg_acc))
-    print("Recall 平均值为：{:.4f}".format(avg_recall))
-    print("Precision 平均值为：{:.4f}".format(avg_precision))
-    print("F1 平均值为：{:.4f}".format(avg_f1))
-    print("AUPR 平均值为：{:.4f}".format(avg_aupr))
 
     # 画图
     std_auc = np.std(tprs, axis=0)
@@ -129,7 +100,7 @@ if __name__ == '__main__':
     std_tpr = np.std(tprs, axis=0)
     tprs_upper = np.minimum(mean_tpr + std_tpr, 1)
     tprs_lower = np.maximum(mean_tpr - std_tpr, 0)
-    plt.fill_between(mean_tpr, tprs_lower, tprs_upper, color='gray', alpha=.2)
+    plt.fill_between(mean_tpr, tprs_lower, tprs_upper, color='gray', alpha=2)
     plt.xlim([-0.05, 1.05])
     plt.ylim([-0.05, 1.05])
     plt.xlabel('False Positive Rate')
