@@ -49,34 +49,35 @@ class MatrixFactorization:
                 loss += beta * ((SD[i, j] - corr) ** 2)
         return loss / 2
 
-    def grad_C(self, A, C, D, SC, alpha, beta, gamma, i, GS):
+    def grad_C(self, A, C, D, SC, alpha, beta, gamma, i):
         p, q = A.shape
-        len = C.shape[1]
-        grad = np.zeros(len)
+        grad = np.zeros(C.shape[1])
 
         for ii in range(C.shape[0]):
-            grad+=gamma*(C[i,:]-C[ii,:])
+            grad+=gamma*(C[i,:]-C[ii,:])*SC[i,ii]
 
         for j in range(q):
             grad += (np.dot(C[i], D[j]) - A[i, j]) * D[j]
         grad += alpha * C[i]
-        for k in range(i + 1, p):
+        for k in range(p):
             corr = self.pearson_similarity(C[i], C[k])
             if np.isnan(corr):
                 corr = 0
-                grad += beta * (SC[i, k] - corr) * (((C[k] - np.mean(C[k])) / (
-                            np.linalg.norm(C[i] - np.mean(C[i])) * np.linalg.norm(C[k] - np.mean(C[k])))) - (((np.dot(
-                    (C[i] - np.mean(C[i])), (C[k] - np.mean(C[k])))) / ((np.linalg.norm(
-                    C[i] - np.mean(C[i])) ** 3) * np.linalg.norm(C[k] - np.mean(C[k])))) * (C[i] - np.mean(C[i]))))
+                ci=C[i] - np.mean(C[i])
+                ck=C[k] - np.mean(C[k])
+                ci_norm=np.linalg.norm(C[i] - np.mean(C[i]))
+                ck_norm=np.linalg.norm(C[k] - np.mean(C[k]))
+
+                grad += beta *(corr-SC[i,k])*(ck/(ci_norm*ck_norm)-ci*(np.dot(ci,ck)/((ci_norm ** 3)*ck_norm)))
         return grad
 
-    def grad_D(self, A, C, D, SD, alpha, beta, gamma, j, GD):
+
+    def grad_D(self, A, C, D, SD, alpha, beta, gamma, j):
         p, q = A.shape
-        len = D.shape[1]
-        grad = np.zeros(len)
+        grad = np.zeros(D.shape[1])
 
         for ii in range(D.shape[0]):
-            grad+=gamma*(D[j,:]-D[ii,:])
+            grad+=gamma*(D[j,:]-D[ii,:])*SD[j,ii]
 
         for i in range(p):
             grad += (np.dot(C[i], D[j]) - A[i, j]) * C[i]
@@ -85,10 +86,12 @@ class MatrixFactorization:
             corr = self.pearson_similarity(D[j], D[k])
             if np.isnan(corr):
                 corr = 0
-                grad += beta * (SD[j, k] - corr) * (((D[k] - np.mean(D[k])) / (
-                            np.linalg.norm(D[j] - np.mean(D[j])) * np.linalg.norm(D[k] - np.mean(D[k])))) - (((np.dot(
-                    (D[j] - np.mean(D[j])), (D[k] - np.mean(D[k])))) / ((np.linalg.norm(
-                    D[j] - np.mean(D[j])) ** 3) * np.linalg.norm(D[k] - np.mean(D[k])))) * (D[j] - np.mean(D[j]))))
+                dj=D[j] - np.mean(D[j])
+                dk=D[k] - np.mean(D[k])
+                dj_norm=np.linalg.norm(D[j] - np.mean(D[j]))
+                dk_norm=np.linalg.norm(D[k] - np.mean(D[k]))
+
+                grad += beta *(corr-SD[j,k])*(dk/(dj_norm*dk_norm)-dj*(np.dot(dj,dk)/((dj_norm ** 3)*dk_norm)))
         return grad
 
     def nonnegative_matrix_factorization(self, A, SC, SD, r, alpha, beta, gamma, lr, max_iter, tol, diff_threshold):
