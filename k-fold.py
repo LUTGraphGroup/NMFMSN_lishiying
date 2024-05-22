@@ -69,9 +69,8 @@ if __name__ == '__main__':
                                                    , alpha, beta, gamma, lr, max_iter, tol, diff_threshold)
 
         prediction_matrix = np.dot(C, D.T)
-        # 求fpr，tpr以绘制ROC曲线
+        # fpr，tpr以绘制ROC曲线
         y_true, y_scores = convert_to_lists(roc_circrna_disease_matrix, prediction_matrix)
-        print('交叉验证的样本数量：', len(y_true), len(y_scores))
         fpr, tpr, thersholds = roc_curve(y_true, y_scores, pos_label=1)
 
         # interp:插值 把结果添加到tprs列表中
